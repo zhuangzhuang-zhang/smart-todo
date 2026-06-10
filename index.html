@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智办清单 - 智能待办事项</title>
+  <style>
+    :root {
+      --bg: #f5f7f4;
+      --panel: #ffffff;
+      --ink: #17201d;
+      --muted: #68746f;
+      --line: #dfe6df;
+      --teal: #0f8b8d;
+      --teal-dark: #09666a;
+      --coral: #ee6c4d;
+      --yellow: #f4b942;
+      --green: #2e9d65;
+      --shadow: 0 22px 55px rgba(28, 45, 40, .12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.68), rgba(245,247,244,.94)),
+        var(--bg);
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 16px clamp(16px, 4vw, 44px);
+      border-bottom: 1px solid rgba(23, 32, 29, .08);
+      background: rgba(245, 247, 244, .86);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--teal);
+      border-radius: 8px;
+      box-shadow: 0 10px 22px rgba(15, 139, 141, .28);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn,
+    .ghost-btn,
+    .primary-btn {
+      min-height: 40px;
+      border-radius: 8px;
+      transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    .icon-btn {
+      width: 40px;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .ghost-btn {
+      padding: 0 14px;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .primary-btn {
+      padding: 0 18px;
+      color: #fff;
+      background: var(--teal);
+      box-shadow: 0 12px 26px rgba(15, 139, 141, .24);
+    }
+
+    .icon-btn:hover,
+    .ghost-btn:hover,
+    .primary-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .workspace {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 24px clamp(16px, 4vw, 44px) 44px;
+    }
+
+    .hero {
+      min-height: 286px;
+      display: grid;
+      grid-template-columns: minmax(0, .95fr) minmax(320px, 1.05fr);
+      align-items: stretch;
+      overflow: hidden;
+      border: 1px solid rgba(23, 32, 29, .08);
+      border-radius: var(--radius);
+      background: #ffffff;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      padding: clamp(24px, 5vw, 46px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .eyebrow {
+      width: fit-content;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      color: var(--teal-dark);
+      background: #e6f5f3;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hero h2 {
+      margin: 0;
+      max-width: 680px;
+      font-size: clamp(34px, 5vw, 66px);
+      line-height: .98;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 620px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .stat-pill {
+      min-height: 76px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfa;
+    }
+
+    .stat-pill strong {
+      display: block;
+      font-size: 25px;
+    }
+
+    .stat-pill span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hero-art {
+      min-height: 286px;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,.98) 0%, rgba(255,255,255,.62) 18%, rgba(255,255,255,0) 42%),
+        url("assets/smart-todo-hero.png");
+      background-size: cover;
+      background-position: center right;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(320px, .9fr);
+      gap: 18px;
+      margin-top: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 12px 28px rgba(28, 45, 40, .06);
+    }
+
+    .composer {
+      padding: 16px;
+    }
+
+    .composer-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .task-input {
+      min-height: 54px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      outline: none;
+      background: #fbfcfa;
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    .task-input:focus,
+    .search:focus,
+    select:focus {
+      border-color: rgba(15, 139, 141, .7);
+      box-shadow: 0 0 0 4px rgba(15, 139, 141, .12);
+    }
+
+    .composer-tools {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    select,
+    .date-input,
+    .search {
+      min-height: 42px;
+      width: 100%;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      outline: none;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .segmented {
+      display: flex;
+      height: 42px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f7f9f6;
+    }
+
+    .segmented button {
+      min-width: 76px;
+      padding: 0 12px;
+      color: var(--muted);
+      border-radius: 6px;
+      background: transparent;
+    }
+
+    .segmented button.active {
+      color: #fff;
+      background: var(--ink);
+    }
+
+    .task-list {
+      display: grid;
+      gap: 10px;
+      min-height: 280px;
+      padding: 16px;
+    }
+
+    .task-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: start;
+      min-height: 82px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      transition: transform .18s ease, border .18s ease, box-shadow .18s ease;
+    }
+
+    .task-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(15, 139, 141, .34);
+      box-shadow: 0 12px 24px rgba(28, 45, 40, .08);
+    }
+
+    .check {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      border: 2px solid var(--line);
+      color: transparent;
+      background: #fff;
+    }
+
+    .task-card.done .check {
+      color: #fff;
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .task-title {
+      margin: 0;
+      line-height: 1.45;
+      font-size: 16px;
+      font-weight: 800;
+      word-break: break-word;
+    }
+
+    .task-card.done .task-title {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: #f2f5f1;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .priority-high {
+      color: #8f2e1d;
+      background: #ffe9e2;
+    }
+
+    .priority-medium {
+      color: #805d08;
+      background: #fff5d6;
+    }
+
+    .priority-low {
+      color: #286a51;
+      background: #e4f7ef;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mini-btn {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: #fff;
+    }
+
+    .mini-btn:hover {
+      color: var(--ink);
+      background: #f7f9f6;
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .side-panel {
+      padding: 16px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .panel-head h3 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .score {
+      min-width: 70px;
+      height: 70px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background:
+        conic-gradient(var(--teal) var(--angle), #edf2ed 0);
+      position: relative;
+      font-weight: 900;
+    }
+
+    .score::after {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border-radius: inherit;
+      background: var(--teal);
+      z-index: 0;
+    }
+
+    .score span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .insight-list,
+    .focus-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .insight-list li,
+    .focus-list li {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--muted);
+      background: #fbfcfa;
+      line-height: 1.55;
+    }
+
+    .focus-list strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+
+    .empty {
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+      border: 1px dashed #cfd8cf;
+      border-radius: var(--radius);
+      background: #fbfcfa;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 10;
+      max-width: min(360px, calc(100vw - 36px));
+      padding: 13px 15px;
+      color: #fff;
+      background: var(--ink);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transform: translateY(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @media (max-width: 1040px) {
+      .hero,
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-art {
+        min-height: 220px;
+        background-image:
+          linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.7)),
+          url("assets/smart-todo-hero.png");
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .nav-actions,
+      .composer-row,
+      .composer-tools,
+      .filters,
+      .quick-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 40px 1fr 1fr;
+      }
+
+      .segmented {
+        width: 100%;
+      }
+
+      .segmented button {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .task-card {
+        grid-template-columns: auto 1fr;
+      }
+
+      .task-actions {
+        grid-column: 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <div>
+          <h1>智办清单</h1>
+          <small>智能计划，专注执行</small>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <button class="icon-btn" id="themeBtn" title="切换明暗">
+          <svg viewBox="0 0 24 24"><path d="M12 3v2"/><path d="M12 19v2"/><path d="m4.22 4.22 1.42 1.42"/><path d="m18.36 18.36 1.42 1.42"/><path d="M3 12h2"/><path d="M19 12h2"/><path d="m4.22 19.78 1.42-1.42"/><path d="m18.36 5.64 1.42-1.42"/><circle cx="12" cy="12" r="4"/></svg>
+        </button>
+        <button class="ghost-btn" id="clearDoneBtn">清理已完成</button>
+        <button class="primary-btn" id="demoBtn">生成示例</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">AI Priority Planner</span>
+          <h2>把杂乱事务变成今天能完成的计划</h2>
+          <p>输入一句话，系统会自动识别日期、标签、优先级与任务类型，并根据紧急度整理焦点队列，让待办清单更像一个在线工作助理。</p>
+          <div class="quick-stats" aria-label="任务概览">
+            <div class="stat-pill">
+              <strong id="statTotal">0</strong>
+              <span>全部任务</span>
+            </div>
+            <div class="stat-pill">
+              <strong id="statToday">0</strong>
+              <span>今日到期</span>
+            </div>
+            <div class="stat-pill">
+              <strong id="statDone">0%</strong>
+              <span>完成进度</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-art" role="img" aria-label="智能待办工作台视觉图"></div>
+      </section>
+
+      <section class="main-grid">
+        <div class="panel">
+          <form class="composer" id="taskForm">
+            <div class="composer-row">
+              <input class="task-input" id="taskInput" placeholder="例如：明天 15:00 完成产品方案 #工作 !高" autocomplete="off" />
+              <button class="primary-btn" type="submit">添加任务</button>
+            </div>
+            <div class="composer-tools">
+              <select id="priorityInput" aria-label="优先级">
+                <option value="auto">智能优先级</option>
+                <option value="high">高优先级</option>
+                <option value="medium">中优先级</option>
+                <option value="low">低优先级</option>
+              </select>
+              <select id="categoryInput" aria-label="分类">
+                <option value="auto">智能分类</option>
+                <option value="工作">工作</option>
+                <option value="学习">学习</option>
+                <option value="生活">生活</option>
+                <option value="健康">健康</option>
+              </select>
+              <input class="date-input" id="dateInput" type="date" aria-label="到期日期" />
+              <select id="durationInput" aria-label="预计耗时">
+                <option value="15">15 分钟</option>
+                <option value="30" selected>30 分钟</option>
+                <option value="60">1 小时</option>
+                <option value="120">2 小时</option>
+              </select>
+            </div>
+          </form>
+
+          <div class="filters">
+            <input class="search" id="searchInput" placeholder="搜索任务、标签或分类" />
+            <div class="segmented" role="tablist" aria-label="状态筛选">
+              <button class="active" data-filter="all" type="button">全部</button>
+              <button data-filter="open" type="button">待办</button>
+              <button data-filter="done" type="button">完成</button>
+            </div>
+            <select id="sortInput" aria-label="排序">
+              <option value="smart">智能排序</option>
+              <option value="due">按日期</option>
+              <option value="priority">按优先级</option>
+              <option value="created">按创建</option>
+            </select>
+          </div>
+
+          <div class="task-list" id="taskList"></div>
+        </div>
+
+        <aside class="side-stack">
+          <section class="panel side-panel">
+            <div class="panel-head">
+              <h3>智能摘要</h3>
+              <div class="score" id="scoreRing" style="--angle: 0deg"><span id="scoreText">0</span></div>
+            </div>
+            <ul class="insight-list" id="insightList"></ul>
+          </section>
+
+          <section class="panel side-panel">
+            <div class="panel-head">
+              <h3>焦点队列</h3>
+              <button class="mini-btn" id="focusBtn" title="刷新焦点">
+                <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+              </button>
+            </div>
+            <ul class="focus-list" id="focusList"></ul>
+          </section>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const storageKey = "smartTodoTasks.v1";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const state = {
+      tasks: JSON.parse(localStorage.getItem(storageKey) || "[]"),
+      filter: "all",
+      search: "",
+      sort: "smart"
+    };
+
+    const els = {
+      form: document.querySelector("#taskForm"),
+      input: document.querySelector("#taskInput"),
+      priority: document.querySelector("#priorityInput"),
+      category: document.querySelector("#categoryInput"),
+      date: document.querySelector("#dateInput"),
+      duration: document.querySelector("#durationInput"),
+      list: document.querySelector("#taskList"),
+      search: document.querySelector("#searchInput"),
+      sort: document.querySelector("#sortInput"),
+      filters: document.querySelectorAll("[data-filter]"),
+      statTotal: document.querySelector("#statTotal"),
+      statToday: document.querySelector("#statToday"),
+      statDone: document.querySelector("#statDone"),
+      insights: document.querySelector("#insightList"),
+      focus: document.querySelector("#focusList"),
+      scoreRing: document.querySelector("#scoreRing"),
+      scoreText: document.querySelector("#scoreText"),
+      clearDone: document.querySelector("#clearDoneBtn"),
+      demo: document.querySelector("#demoBtn"),
+      theme: document.querySelector("#themeBtn"),
+      toast: document.querySelector("#toast")
+    };
+
+    els.date.value = toISODate(today);
+
+    if (!state.tasks.length) {
+      state.tasks = [
+        createTask("今天 10:30 梳理本周项目进度 #工作 !高", { silent: true }),
+        createTask("明天 20:00 跑步 30 分钟 #健康", { silent: true }),
+        createTask("周五 阅读 AI 产品设计文章 #学习", { silent: true })
+      ];
+      save();
+    }
+
+    render();
+
+    els.form.addEventListener("submit", event => {
+      event.preventDefault();
+      const title = els.input.value.trim();
+      if (!title) {
+        showToast("先写下一个任务吧。");
+        return;
+      }
+      const task = createTask(title);
+      state.tasks.unshift(task);
+      els.input.value = "";
+      els.priority.value = "auto";
+      els.category.value = "auto";
+      els.duration.value = "30";
+      save();
+      render();
+      showToast("任务已加入智能队列。");
+    });
+
+    els.search.addEventListener("input", event => {
+      state.search = event.target.value.trim().toLowerCase();
+      render();
+    });
+
+    els.sort.addEventListener("change", event => {
+      state.sort = event.target.value;
+      render();
+    });
+
+    els.filters.forEach(button => {
+      button.addEventListener("click", () => {
+        state.filter = button.dataset.filter;
+        els.filters.forEach(item => item.classList.toggle("active", item === button));
+        render();
+      });
+    });
+
+    els.list.addEventListener("click", event => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      const card = event.target.closest("[data-id]");
+      const id = card?.dataset.id;
+      if (button.dataset.action === "toggle") {
+        const task = state.tasks.find(item => item.id === id);
+        task.done = !task.done;
+        save();
+        render();
+      }
+      if (button.dataset.action === "delete") {
+        state.tasks = state.tasks.filter(item => item.id !== id);
+        save();
+        render();
+        showToast("任务已删除。");
+      }
+      if (button.dataset.action === "boost") {
+        const task = state.tasks.find(item => item.id === id);
+        task.priority = task.priority === "high" ? "medium" : "high";
+        save();
+        render();
+      }
+    });
+
+    els.clearDone.addEventListener("click", () => {
+      const before = state.tasks.length;
+      state.tasks = state.tasks.filter(task => !task.done);
+      save();
+      render();
+      showToast(`已清理 ${before - state.tasks.length} 个完成项。`);
+    });
+
+    els.demo.addEventListener("click", () => {
+      const samples = [
+        "今天 16:00 给客户发送新版报价 #工作 !高",
+        "后天 整理旅行清单 #生活",
+        "明天 学习 45 分钟数据可视化 #学习",
+        "今天 19:30 准备健康晚餐 #健康"
+      ];
+      state.tasks = samples.map(text => createTask(text)).concat(state.tasks);
+      save();
+      render();
+      showToast("已生成一组示例任务。");
+    });
+
+    els.focus.addEventListener("click", () => {
+      render();
+      showToast("焦点队列已刷新。");
+    });
+
+    els.theme.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const dark = document.body.classList.contains("dark");
+      document.documentElement.style.setProperty("--bg", dark ? "#111816" : "#f5f7f4");
+      document.documentElement.style.setProperty("--panel", dark ? "#18221f" : "#ffffff");
+      document.documentElement.style.setProperty("--ink", dark ? "#edf5ef" : "#17201d");
+      document.documentElement.style.setProperty("--muted", dark ? "#aebbb4" : "#68746f");
+      document.documentElement.style.setProperty("--line", dark ? "#2b3834" : "#dfe6df");
+      showToast(dark ? "已切换为深色视图。" : "已切换为浅色视图。");
+    });
+
+    function createTask(rawTitle, options = {}) {
+      const parsed = parseTask(rawTitle);
+      const selectedPriority = els.priority?.value || "auto";
+      const selectedCategory = els.category?.value || "auto";
+      const selectedDate = els.date?.value || toISODate(today);
+      const selectedDuration = Number(els.duration?.value || 30);
+      const task = {
+        id: crypto.randomUUID(),
+        title: parsed.cleanTitle || rawTitle,
+        priority: selectedPriority === "auto" ? parsed.priority : selectedPriority,
+        category: selectedCategory === "auto" ? parsed.category : selectedCategory,
+        due: parsed.due || selectedDate,
+        time: parsed.time,
+        duration: parsed.duration || selectedDuration,
+        tags: parsed.tags,
+        done: false,
+        createdAt: Date.now()
+      };
+      if (!options.silent) task.createdAt = Date.now();
+      return task;
+    }
+
+    function parseTask(text) {
+      const tags = [...text.matchAll(/#([\u4e00-\u9fa5\w-]+)/g)].map(match => match[1]);
+      const timeMatch = text.match(/(\d{1,2})[:：](\d{2})/);
+      const durationMatch = text.match(/(\d+)\s*(分钟|分|小时|h)/i);
+      let cleanTitle = text
+        .replace(/#([\u4e00-\u9fa5\w-]+)/g, "")
+        .replace(/![高中低]|！[高中低]/g, "")
+        .replace(/(\d{1,2})[:：](\d{2})/g, "")
+        .replace(/(\d+)\s*(分钟|分|小时|h)/ig, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      let priority = "medium";
+      if (/[!！]高|紧急|马上|尽快|重要/.test(text)) priority = "high";
+      if (/[!！]低|以后|有空|可选/.test(text)) priority = "low";
+
+      let due = "";
+      if (/今天/.test(text)) due = toISODate(addDays(0));
+      if (/明天/.test(text)) due = toISODate(addDays(1));
+      if (/后天/.test(text)) due = toISODate(addDays(2));
+      if (/周五|星期五/.test(text)) due = nextWeekday(5);
+      if (/周六|星期六/.test(text)) due = nextWeekday(6);
+      if (/周日|星期日|星期天/.test(text)) due = nextWeekday(0);
+
+      const category = inferCategory(text, tags);
+      const minutes = durationMatch
+        ? Number(durationMatch[1]) * (/小时|h/i.test(durationMatch[2]) ? 60 : 1)
+        : 30;
+
+      return {
+        cleanTitle,
+        tags,
+        priority,
+        category,
+        due,
+        time: timeMatch ? `${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}` : "",
+        duration: minutes
+      };
+    }
+
+    function inferCategory(text, tags) {
+      const source = `${text} ${tags.join(" ")}`;
+      if (/工作|项目|客户|会议|方案|报价|产品/.test(source)) return "工作";
+      if (/学习|阅读|课程|考试|英语|文章|研究/.test(source)) return "学习";
+      if (/跑步|健身|健康|睡眠|运动|饮食/.test(source)) return "健康";
+      return "生活";
+    }
+
+    function render() {
+      const filtered = getVisibleTasks();
+      renderTasks(filtered);
+      renderStats();
+      renderInsights();
+      renderFocus();
+    }
+
+    function getVisibleTasks() {
+      const search = state.search;
+      return state.tasks
+        .filter(task => state.filter === "all" || (state.filter === "done" ? task.done : !task.done))
+        .filter(task => {
+          const haystack = `${task.title} ${task.category} ${task.tags.join(" ")}`.toLowerCase();
+          return !search || haystack.includes(search);
+        })
+        .sort((a, b) => sortTasks(a, b));
+    }
+
+    function sortTasks(a, b) {
+      if (state.sort === "created") return b.createdAt - a.createdAt;
+      if (state.sort === "due") return dateValue(a) - dateValue(b);
+      if (state.sort === "priority") return priorityValue(b) - priorityValue(a);
+      return smartScore(b) - smartScore(a);
+    }
+
+    function renderTasks(tasks) {
+      if (!tasks.length) {
+        els.list.innerHTML = `<div class="empty">当前视图没有任务，换个筛选条件或添加一条新的待办。</div>`;
+        return;
+      }
+      els.list.innerHTML = tasks.map(task => `
+        <article class="task-card ${task.done ? "done" : ""}" data-id="${task.id}">
+          <button class="check" data-action="toggle" title="${task.done ? "标记待办" : "标记完成"}">
+            <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+          </button>
+          <div>
+            <p class="task-title">${escapeHTML(task.title)}</p>
+            <div class="task-meta">
+              <span class="tag priority-${task.priority}">${priorityLabel(task.priority)}</span>
+              <span class="tag">${escapeHTML(task.category)}</span>
+              <span class="tag">${formatDue(task)}</span>
+              <span class="tag">${task.duration} 分钟</span>
+              ${task.tags.map(tag => `<span class="tag">#${escapeHTML(tag)}</span>`).join("")}
+            </div>
+          </div>
+          <div class="task-actions">
+            <button class="mini-btn" data-action="boost" title="提高优先级">
+              <svg viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>
+            </button>
+            <button class="mini-btn" data-action="delete" title="删除任务">
+              <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderStats() {
+      const total = state.tasks.length;
+      const done = state.tasks.filter(task => task.done).length;
+      const todayCount = state.tasks.filter(task => task.due === toISODate(today) && !task.done).length;
+      els.statTotal.textContent = total;
+      els.statToday.textContent = todayCount;
+      els.statDone.textContent = total ? `${Math.round(done / total * 100)}%` : "0%";
+    }
+
+    function renderInsights() {
+      const openTasks = state.tasks.filter(task => !task.done);
+      const high = openTasks.filter(task => task.priority === "high").length;
+      const overdue = openTasks.filter(task => dateValue(task) < dateValue({ due: toISODate(today) })).length;
+      const minutes = openTasks.reduce((sum, task) => sum + Number(task.duration || 0), 0);
+      const score = Math.max(0, Math.min(100, 100 - high * 10 - overdue * 18 - Math.max(0, minutes - 240) / 8));
+      els.scoreRing.style.setProperty("--angle", `${score * 3.6}deg`);
+      els.scoreText.textContent = Math.round(score);
+      els.insights.innerHTML = [
+        overdue ? `有 ${overdue} 个任务已经过期，建议先处理最短的一项。` : "没有过期任务，计划节奏保持得不错。",
+        high ? `高优先级任务 ${high} 个，适合放进今天的深度工作时间。` : "当前没有高压事项，可以安排维护型任务。",
+        `未完成工作量约 ${minutes} 分钟，建议拆成 ${Math.max(1, Math.ceil(minutes / 50))} 个专注段。`
+      ].map(text => `<li>${text}</li>`).join("");
+    }
+
+    function renderFocus() {
+      const focusTasks = state.tasks
+        .filter(task => !task.done)
+        .sort((a, b) => smartScore(b) - smartScore(a))
+        .slice(0, 3);
+      els.focus.innerHTML = focusTasks.length
+        ? focusTasks.map((task, index) => `
+          <li>
+            <strong>${index + 1}. ${escapeHTML(task.title)}</strong>
+            ${priorityLabel(task.priority)} · ${formatDue(task)} · ${task.duration} 分钟
+          </li>
+        `).join("")
+        : `<li>焦点队列已清空，可以开始新的计划。</li>`;
+    }
+
+    function smartScore(task) {
+      if (task.done) return -1;
+      const days = Math.floor((dateValue(task) - dateValue({ due: toISODate(today) })) / 86400000);
+      const urgency = Math.max(0, 20 - days * 6);
+      const durationBoost = task.duration <= 30 ? 8 : task.duration <= 60 ? 4 : 0;
+      return priorityValue(task) * 20 + urgency + durationBoost;
+    }
+
+    function priorityValue(task) {
+      return ({ high: 3, medium: 2, low: 1 })[task.priority] || 2;
+    }
+
+    function priorityLabel(priority) {
+      return ({ high: "高优先级", medium: "中优先级", low: "低优先级" })[priority] || "中优先级";
+    }
+
+    function formatDue(task) {
+      const parts = [];
+      if (task.due) parts.push(task.due);
+      if (task.time) parts.push(task.time);
+      return parts.join(" ") || "未设日期";
+    }
+
+    function dateValue(task) {
+      return new Date(task.due || "2999-12-31").getTime();
+    }
+
+    function addDays(days) {
+      const date = new Date(today);
+      date.setDate(date.getDate() + days);
+      return date;
+    }
+
+    function nextWeekday(day) {
+      const date = new Date(today);
+      const diff = (day + 7 - date.getDay()) % 7 || 7;
+      date.setDate(date.getDate() + diff);
+      return toISODate(date);
+    }
+
+    function toISODate(date) {
+      const copy = new Date(date);
+      copy.setMinutes(copy.getMinutes() - copy.getTimezoneOffset());
+      return copy.toISOString().slice(0, 10);
+    }
+
+    function save() {
+      localStorage.setItem(storageKey, JSON.stringify(state.tasks));
+    }
+
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 2200);
+    }
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#039;"
+      })[char]);
+    }
+  </script>
+</body>
+</html>
